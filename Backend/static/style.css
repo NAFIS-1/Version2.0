@@ -1,0 +1,136 @@
+/* static/style.css */
+body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    background-color: #f4f4f4;
+    color: #333;
+}
+
+.container {
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    width: 100%;
+    max-width: 600px;
+}
+
+h1 {
+    color: #0056b3;
+    margin-bottom: 25px;
+}
+
+form {
+    margin-bottom: 25px;
+}
+
+.file-input-wrapper {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+.file-input-label {
+    display: block;
+    padding: 10px 15px;
+    background-color: #007bff;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.file-input-label:hover {
+    background-color: #0056b3;
+}
+
+#resumeFile {
+    /* Hide the default file input */
+    opacity: 0;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+}
+
+.file-name-display {
+    display: block;
+    margin-top: 10px;
+    font-size: 0.9em;
+    color: #555;
+    word-wrap: break-word;
+}
+
+
+button {
+    padding: 10px 20px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #218838;
+}
+
+.hidden {
+    display: none !important;
+}
+
+#responseContainer, #errorContainer {
+    margin-top: 20px;
+    padding: 15px;
+    border-radius: 5px;
+    text-align: left;
+}
+
+#responseContainer {
+    background-color: #e9f7ef;
+    border: 1px solid #c3e6cb;
+}
+
+#errorContainer {
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    color: #721c24;
+}
+
+#responseContent, #errorDetails {
+    white-space: pre-wrap; /* Preserve formatting and wrap text */
+    word-wrap: break-word; /* Ensure long words break */
+    background-color: #eee;
+    padding: 10px;
+    border-radius: 5px;
+    max-height: 400px; /* Limit height for long outputs */
+    overflow-y: auto; /* Add scroll if content overflows */
+    font-size: 0.9em;
+    margin-top: 10px;
+}
+
+/* Loading spinner */
+.spinner {
+    border: 4px solid rgba(0, 0, 0, 0.1);
+    border-left-color: #007bff;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    animation: spin 1s linear infinite;
+    margin: 20px auto 10px auto;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}

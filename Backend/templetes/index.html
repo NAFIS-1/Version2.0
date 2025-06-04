@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Parser</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Upload Your Resume</h1>
+        <form id="uploadForm" enctype="multipart/form-data">
+            <div class="file-input-wrapper">
+                <input type="file" id="resumeFile" name="file" accept=".pdf,.docx" required>
+                <label for="resumeFile" class="file-input-label">Choose File</label>
+                <span id="fileNameDisplay" class="file-name-display">No file chosen</span>
+            </div>
+            <button type="submit">Parse Resume</button>
+        </form>
+
+        <div id="loading" class="hidden">
+            <div class="spinner"></div>
+            <p id="loadingMessage">Parsing your resume... Please wait.</p>
+            <p id="progressPercentage">0% Completed</p>
+        </div>
+
+        <div id="responseContainer" class="hidden">
+            <h2>Extracted Information:</h2>
+            <p id="completenessScore"></p> <pre id="responseContent"></pre>
+        </div>
+
+        <div id="errorContainer" class="hidden">
+            <h2>Error:</h2>
+            <p id="errorMessage"></p>
+            <pre id="errorDetails"></pre>
+        </div>
+    </div>
+
+    <script>
+        const uploadForm = document.getElementById('uploadForm');
+        const resumeFileInput = document.getElementById('resumeFile');
+        const fileNameDisplay = document.getElementById('fileNameDisplay');
+        const loadingDiv = document.getElementById('loading');
+        const loadingMessage = document.getElementById('loadingMessage');
+        const progressPercentage = document.getElementById('progressPercentage');
+        const responseContainer = document.getElementById('responseContainer');
+        const completenessScore = document.getElementById('completenessScore'); // NEW: Get the new element
+        const responseContent = document.getElementById('responseContent');
+        const errorContainer = document.getElementById('errorContainer');
+        const errorMessage = document.getElementById('errorMessage');
+        const errorDetails = document.getElementById('errorDetails');
+
+        let clientProgressInterval;
+        let currentClientProgress = 0;
+        const clientTotalDuration = 15000; // Total duration for frontend percentage increase in milliseconds (e.g., 15 seconds)
+        const clientUpdateInterval = 200; // Update every 200ms
+
+        function startClientProgress() {
+            currentClientProgress = 0;
+            progressPercentage.textContent = '0% Completed';
+            loadingMessage.textContent = 'Uploading and extracting text...';
+
+            clientProgressInterval = setInterval(() => {
+                if (currentClientProgress < 30) {
+                    currentClientProgress += 1;
+                } else if (currentClientProgress < 70) {
+                    currentClientProgress += 1;
+                    loadingMessage.textContent = 'Analyzing with AI...';
+                } else if (currentClientProgress < 99) {
+                    currentClientProgress += 1;
+                    loadingMessage.textContent = 'Finalizing analysis...';
+                } else if (currentClientProgress >= 99) {
+                    currentClientProgress = 99;
+                }
+                progressPercentage.textContent = `${currentClientProgress}% Completed`;
+            }, clientUpdateInterval);
+        }
+
+        function stopClientProgress() {
+            clearInterval(clientProgressInterval);
+            currentClientProgress = 0;
+            loadingMessage.textContent = 'Parsing your resume... Please wait.';
+            progressPercentage.textContent = '0% Completed';
+        }
+
+        resumeFileInput.addEventListener('change', function() {
+            if (this.files.length > 0) {
+                fileNameDisplay.textContent = this.files[0].name;
+            } else {
+                fileNameDisplay.textContent = 'No file chosen';
+            }
+        });
+
+        uploadForm.addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            responseContainer.classList.add('hidden');
+            errorContainer.classList.add('hidden');
+            loadingDiv.classList.remove('hidden');
+
+            startClientProgress();
+
+            const formData = new FormData();
+            const file = resumeFileInput.files[0];
+
+            if (!file) {
+                alert('Please select a file to upload.');
+                loadingDiv.classList.add('hidden');
+                stopClientProgress();
+                return;
+            }
+
+            formData.append('file', file);
+
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                stopClientProgress();
+                loadingDiv.classList.add('hidden');
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Display the completeness score from the backend
+                    if (typeof data.completenessPercentage !== 'undefined') {
+                        completenessScore.textContent = `Resume Information Completeness: ${data.completenessPercentage}%`;
+                    } else {
+                        completenessScore.textContent = ''; // Clear if not found
+                    }
+                    
+                    // Display the extracted data (now nested under 'extractedData')
+                    responseContent.textContent = JSON.stringify(data.extractedData, null, 2);
+                    responseContainer.classList.remove('hidden');
+                } else {
+                    // Error handling remains similar
+                    errorMessage.textContent = data.detail || data.error || 'An unknown error occurred.';
+                    if (data.details) {
+                        errorDetails.textContent = `Details: ${data.details}`;
+                    } else if (data.raw_response) {
+                        errorDetails.textContent = `Raw AI Response: ${data.raw_response}`;
+                    } else if (data.detail && typeof data.detail === 'string') {
+                        errorDetails.textContent = data.detail;
+                    }
+                    else {
+                        errorDetails.textContent = JSON.stringify(data, null, 2);
+                    }
+                    errorContainer.classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('Network or fetch error:', error);
+                stopClientProgress();
+                loadingDiv.classList.add('hidden');
+                errorMessage.textContent = 'Failed to connect to the server. Please check your network connection.';
+                errorDetails.textContent = `Error: ${error.message}`;
+                errorContainer.classList.remove('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
